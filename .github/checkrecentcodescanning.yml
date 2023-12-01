@@ -1,0 +1,30 @@
+# Check the last code scanning run and fail if there are open alerts left
+name: "Check code scanning results"
+on:
+ push:
+  branches: [ "develop" ]
+ pull_request:
+   branches: [ "develop" ]
+jobs:
+ retrieveRecentCodeScanningResults:
+   name: retrieveRecentCodeScanningResults
+   runs-on: ubuntu-latest
+   permissions:
+     security-events: read
+   steps:
+   - name: Get the most recent code scanning alerts
+     id: get-alerts
+     run: |
+       echo "Get the most recent code scanning alerts"
+       echo ALERTS=$(curl -s \
+        -H "Accept: application/vnd.github+json" \
+        -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        https://api.github.com/repos/${{ github.repository }}/code-scanning/alerts) >> $GITHUB_OUTPUT
+
+   - name: Check if there are open alerts and exit accordingly
+     if: ${{ fromJson(steps.get-alerts.outputs.ALERTS)[0].state == 'open' }}
+     run: |
+       echo “There were ${{ fromJson(steps.get-alerts.outputs.ALERTS)[0].number }} Security Issues”
+       exit 1
+       
