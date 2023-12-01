@@ -1,0 +1,26 @@
+name: "Check code scanning results"
+on:
+   push:
+     branches: [ "develop" ]
+   pull_request:
+     branches: [ "develop" ]
+jobs:
+   retrieveRecentCodeScanningResults:
+     name: retrieveRecentCodeScanningResults
+     runs-on: ubuntu-latest
+     permissions:
+       security-events: read
+     steps:
+       - name: Get the most recent code scanning alerts
+         run: |
+            echo "Get the most recent code scanning alerts"
+            echo "GitHub repository: ${{ github.repository }}"
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            API_URL="https://api.github.com/repos/${{ github.repository }}/code-scanning/alerts"
+            curl -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" $API_URL
+
+       - name: Check if there are open alerts and exit accordingly
+         run: |
+           echo “Check if there are open alerts and exit accordingly”
+
+    
